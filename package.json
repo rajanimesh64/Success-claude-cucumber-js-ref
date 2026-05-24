@@ -1,0 +1,11 @@
+{
+  "name": "selenium-bdd-framework",
+  "version": "1.0.0",
+  "description": "Cucumber-JS style HTML report generator",
+  "scripts": {
+    "generate-report": "node generate-report.js"
+  },
+  "dependencies": {
+    "cucumber-html-reporter": "^7.1.2"
+  }
+}

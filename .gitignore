@@ -1,0 +1,9 @@
+target/
+node_modules/
+node/
+package-lock.json
+*.class
+*.log
+.idea/
+*.iml
+.vscode/

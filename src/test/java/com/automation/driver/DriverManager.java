@@ -21,8 +21,16 @@ public class DriverManager {
         }
         // offline: pass -Dwebdriver.chrome.driver=C:/drivers/chromedriver.exe to Maven
         ChromeOptions options = new ChromeOptions();
+        if (System.getenv("CI") != null) {
+            options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--window-size=1920,1080");
+        }
         WebDriver driver = new ChromeDriver(options);
-        driver.manage().window().maximize();
+        if (System.getenv("CI") == null) {
+            driver.manage().window().maximize();
+        }
         driverThreadLocal.set(driver);
     }
 

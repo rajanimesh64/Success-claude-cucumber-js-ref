@@ -4,6 +4,8 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 
 public class DriverManager {
 
@@ -14,20 +16,30 @@ public class DriverManager {
     }
 
     public static void initDriver() {
-        String localDriver = System.getProperty("webdriver.chrome.driver");
-        if (localDriver == null || localDriver.isEmpty()) {
-            // online: let WebDriverManager download the matching ChromeDriver
-            WebDriverManager.chromedriver().setup();
+        String browser = System.getProperty("browser", "firefox");
+        WebDriver driver;
+
+        if (browser.equalsIgnoreCase("chrome")) {
+            if (System.getProperty("webdriver.chrome.driver") == null) {
+                WebDriverManager.chromedriver().setup();
+            }
+            ChromeOptions options = new ChromeOptions();
+            if (System.getenv("CI") != null) {
+                options.addArguments("--headless=new");
+                options.addArguments("--no-sandbox");
+                options.addArguments("--disable-dev-shm-usage");
+                options.addArguments("--window-size=1920,1080");
+            }
+            driver = new ChromeDriver(options);
+        } else {
+            WebDriverManager.firefoxdriver().setup();
+            FirefoxOptions options = new FirefoxOptions();
+            if (System.getenv("CI") != null) {
+                options.addArguments("--headless");
+            }
+            driver = new FirefoxDriver(options);
         }
-        // offline: pass -Dwebdriver.chrome.driver=C:/drivers/chromedriver.exe to Maven
-        ChromeOptions options = new ChromeOptions();
-        if (System.getenv("CI") != null) {
-            options.addArguments("--headless=new");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--window-size=1920,1080");
-        }
-        WebDriver driver = new ChromeDriver(options);
+
         if (System.getenv("CI") == null) {
             driver.manage().window().maximize();
         }

@@ -7,9 +7,37 @@ const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,
 const reportFileName = `cucumber_report_${timestamp}.html`;
 const reportPath = path.join('target', 'cucumber-html-reports', reportFileName);
 
+// Merge rerun results into main cucumber.json — keeps latest result per scenario
+const jsonPath = 'target/cucumber-reports/cucumber.json';
+let merged = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+
+const rerunFiles = fs.readdirSync('target/cucumber-reports')
+    .filter(f => /^rerun-\d+\.json$/.test(f))
+    .sort((a, b) => parseInt(a.match(/\d+/)[0]) - parseInt(b.match(/\d+/)[0]));
+
+for (const file of rerunFiles) {
+    const rerunPath = `target/cucumber-reports/${file}`;
+    const rerun = JSON.parse(fs.readFileSync(rerunPath, 'utf8'));
+    if (!rerun.length) continue;
+
+    const rerunMap = new Map();
+    rerun.forEach(feature => {
+        feature.elements.forEach(scenario => rerunMap.set(scenario.id, scenario));
+    });
+
+    merged = merged.map(feature => ({
+        ...feature,
+        elements: feature.elements.map(scenario =>
+            rerunMap.has(scenario.id) ? rerunMap.get(scenario.id) : scenario
+        )
+    }));
+}
+
+fs.writeFileSync(jsonPath, JSON.stringify(merged, null, 2), 'utf8');
+
 const options = {
     theme: 'hierarchy',
-    jsonFile: 'target/cucumber-reports/cucumber.json',
+    jsonFile: jsonPath,
     output: reportPath,
     reportSuiteAsScenarios: true,
     scenarioTimestamp: true,
